@@ -616,9 +616,12 @@ bool JslGetTouchpadDimension(int deviceId, int &sizeX, int &sizeY)
 		switch (jc->controller_type)
 		{
 		case ControllerType::s_ds4:
-		case ControllerType::s_ds:
 			sizeX = 1920;
 			sizeY = 943;
+			break;
+		case ControllerType::s_ds:
+			sizeX = 1920;
+			sizeY = 1080;
 			break;
 		default:
 			sizeX = 0;

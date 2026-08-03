@@ -206,9 +206,9 @@ bool handle_input(JoyShock *jc, uint8_t *packet, int len, bool &hasIMU) {
         jc->touch_state.t1Down = (packet[indexOffset + 36] & 0x80) == 0;
 
         jc->touch_state.t0X = (packet[indexOffset + 33] | (packet[indexOffset + 34] & 0x0F) << 8) / 1920.0f;
-        jc->touch_state.t0Y = ((packet[indexOffset + 34] & 0xF0) >> 4 | packet[indexOffset + 35] << 4) / 943.0f;
+        jc->touch_state.t0Y = ((packet[indexOffset + 34] & 0xF0) >> 4 | packet[indexOffset + 35] << 4) / 1080.0f;
         jc->touch_state.t1X = (packet[indexOffset + 37] | (packet[indexOffset + 38] & 0x0F) << 8) / 1920.0f;
-        jc->touch_state.t1Y = ((packet[indexOffset + 38] & 0xF0) >> 4 | packet[indexOffset + 39] << 4) / 943.0f;
+        jc->touch_state.t1Y = ((packet[indexOffset + 38] & 0xF0) >> 4 | packet[indexOffset + 39] << 4) / 1080.0f;
 
         //printf("DS touch: %d, %d, %d, %d, %.4f, %.4f, %.4f, %.4f\n",
         //	jc->touch_state.t0Id, jc->touch_state.t1Id, jc->touch_state.t0Down, jc->touch_state.t1Down,
