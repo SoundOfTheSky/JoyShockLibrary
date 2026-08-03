@@ -1,0 +1,80 @@
+name: Build JoyShockLibrary
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows
+          - os: macos-latest
+            name: macOS
+          - os: ubuntu-latest
+            name: Linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install hidapi (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libhidapi-dev
+
+      - name: Install hidapi (macOS)
+        if: runner.os == 'macOS'
+        run: brew install hidapi
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: JoyShockLibrary-${{ matrix.name }}
+          path: |
+            build/**/*.dll
+            build/**/*.so
+            build/**/*.dylib
+          if-no-files-found: warn
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded
+
+      - name: Assemble Unity plugin folder structure
+        run: |
+          mkdir -p package/Assets/Plugins/x86_64
+          mkdir -p package/Assets/Plugins/Linux/x86_64
+          mkdir -p package/Assets/Plugins/macOS
+
+          find downloaded/JoyShockLibrary-Windows -name '*.dll' -exec cp {} package/Assets/Plugins/x86_64/ \;
+          find downloaded/JoyShockLibrary-Linux -name '*.so' -exec cp {} package/Assets/Plugins/Linux/x86_64/ \;
+          find downloaded/JoyShockLibrary-macOS -name '*.dylib' -exec cp {} package/Assets/Plugins/macOS/ \;
+
+          cd package
+          zip -r ../JoyShockLibrary-${{ github.ref_name }}.zip Assets
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: JoyShockLibrary-${{ github.ref_name }}.zip
+          generate_release_notes: true
